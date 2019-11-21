@@ -116,7 +116,7 @@
       "metadata": {
         "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
       },
-      "defaultValue": "C:\Users\ederozereuil\Documents\Projet 2 AzureDeploy\templatespad"
+      "defaultValue": "https://github.com/EnzoDero/AzureDeployDomain.git"
     },
          "_artifactsLocationSasToken": {
       "type": "securestring",
