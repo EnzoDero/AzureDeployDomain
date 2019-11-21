@@ -1,0 +1,51 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "westeurope"
+    },
+    "ResourceGroup": {
+      "value": "AzureDeploy"
+    },
+    "SubnetName": {
+      "value": "default"
+    },
+    "StorageAccount": {
+      "value": "azuredeploydiag538"
+    },
+    "VMsVnetName": {
+      "value": "AzureDeploy-vnet"
+    },
+    "WebPublicIPName": {
+      "value": "AzureDeploy-WebPublicIP"
+    },
+    "AdminPublicIPName": {
+      "value": "AzureDeploy-AdminPublicIP"
+    },
+    "SpAppVMName": {
+      "value": "AzureDeploy-spapp"
+    },
+    "SpWebVMName": {
+      "value": "AzureDeploy-spweb"
+    },
+    "SpVMSize": {
+      "value": "Standard_DS3_v2"
+    },
+    "AdminUsername": {
+      "value": "AdminAD"
+    },
+    "AdminPassword": {
+      "value": "Azerty@12345"
+    },
+    "domainName": {
+      "value": "AzureDeploy.local"
+    },
+    "dnsLabelPrefix": {
+      "value": "azuredeploy"
+    },
+    "adNICIPAddress": {
+      "value": "10.0.0.4"
+    }
+  }
+}
