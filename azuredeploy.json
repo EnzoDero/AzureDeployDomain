@@ -1,245 +1,244 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "location": {
-      "type": "string",
-      "defaultValue": "westeurope",
-      "metadata": {
-        "description": "Supported geo-locations of the provided resource"
-      }
-    },
-    "ResourceGroup": {
-      "type": "string",
-      "defaultValue": "AzureDeploy",
-      "metadata": {
-        "description": "The name of resources group where, vnet and ad server are located"
-      }
-    },
-    "SubnetName": {
-      "type": "string",
-      "defaultValue": "default",
-      "metadata": {
-        "description": "The name of subnet with which the VMs are connected"
-      }
-    },
-    "StorageAccount": {
-      "defaultValue": "azuredeploydiag538",
-      "type": "String"
-    },
-    "VMsVnetName": {
-      "type": "string",
-      "defaultValue": "AzureDeploy-vnet",
-      "metadata": {
-        "description": "The name of vnet where the VMs are located"
-      }
-    },
-    "WebPublicIPName": {
-            "defaultValue": "AzureDeploy-WebPublicIP",
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "defaultValue": "francecentral",
+            "type": "String",
+            "metadata": {
+                "description": "Supported geo-locations of the provided resource"
+            }
+        },
+        "ResourceGroup": {
+            "defaultValue": "AzureDeploy",
+            "type": "String",
+            "metadata": {
+                "description": "The name of resources group where, vnet and ad server are located"
+            }
+        },
+        "SubnetName": {
+            "defaultValue": "default",
+            "type": "String",
+            "metadata": {
+                "description": "The name of subnet with which the VMs are connected"
+            }
+        },
+        "StorageAccount": {
+            "defaultValue": "azuredeploydiag538",
             "type": "String"
-    },
-    "AdminPublicIPName": {
-            "defaultValue": "AzureDeploy-AdminPublicIP",
+        },
+        "VMsVnetName": {
+            "defaultValue": "AzureDeploy-vnet",
+            "type": "String",
+            "metadata": {
+                "description": "The name of vnet where the VMs are located"
+            }
+        },
+        "WebPublicIPName": {
+            "defaultValue": "WebPublicIP",
             "type": "String"
-    },
-    "SpAppVMName": {
-      "type": "string",
-      "defaultValue": "AzureDeploy-spapp",
-      "metadata": {
-        "description": "The name of SharePoint Application VMs"
-      }
-    },
-    "SpWebVMName": {
-      "type": "string",
-      "defaultValue": "AzureDeploy-spweb",
-      "metadata": {
-        "description": "The name of SharePoint Web VMs"
-      }
-    },
-    "existingDCNAME": {
-      "type": "string",
-      "defaultValue": "AzureDeploy-AD",
-      "metadata": {
-        "description": "Type existing AD VM Name"
-      }
-    },
-    "SpVMSize": {
-      "type": "string",
-      "defaultValue": "Standard_DS3_v2",
-      "metadata": {
-        "description": "The size of SharePoint VMs"
-      }
-    },
-    "AdminUsername": {
-      "type": "string",
-      "defaultValue": "AdminAD",
-      "metadata": {
-        "description": "The AD Admin username"
-      }
-    },
-    "AdminPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "The AD Admin password"
-      }
-    },
-    "serviceAccountsPassword": {
-      "type": "securestring",
-      "minLength": 8,
-      "metadata": {
-        "description": "Password for all service account and SharePoint passphrase. It must meet password complexity requirements as documented for property 'adminPassword' in https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/virtualmachines-create-or-update"
-      }
-    },
-    "domainName": {
-      "type": "string",
-      "metadata": {
-        "description": "The FQDN of the AD Domain created "
-      },
-      "defaultValue": "AzureDeploy.local"
-    },
-    "dnsLabelPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
-      },
-      "defaultValue": "azuredeploy"
-    },
-    "adNICIPAddress": {
-      "type": "string",
-      "metadata": {
-        "description": "The IP address of the AD VM"
-      },
-      "defaultValue": "10.0.0.4"
-    },
-    "_artifactsLocation": {
-      "type": "string",
-      "metadata": {
-        "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
-      },
-      "defaultValue": "https://github.com/EnzoDero/AzureDeployDomain"
-    },
-         "_artifactsLocationSasToken": {
-      "type": "securestring",
-      "defaultValue": "",
-      "metadata": {
-        "description": "The sasToken required to access _artifactsLocation. When the template is deployed using the accompanying scripts, a sasToken will be automatically generated."
-      }
-    }
-  },
-  "variables": {
-    "Ids": {
-      "AdminPublicIP": "[resourceId('Microsoft.Network/publicIPAddresses',variables('Names').AdminPublicIP)]",
-      "WebPublicIP": "[resourceId('Microsoft.Network/publicIPAddresses',variables('Names').WebPublicIP)]",
-      "VnetId": "[resourceId(parameters('ResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('VMsVnetName'), parameters('SubnetName'))]",
-      "WebLBFEId": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('Names').WebLoadBalancer),'/backendAddressPools/',variables('Names').WebLBBE)]",
-      "AppLBFEId": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('Names').AppLoadBalancer),'/backendAddressPools/',variables('Names').AppLBBE)]",
-      "SpWebAvailabilitySet": "[resourceId('Microsoft.Compute/availabilitySets',variables('Names').WebAvailabiltySet)]",
-      "SpAppAvailabilitySet": "[resourceId('Microsoft.Compute/availabilitySets',variables('Names').AppAvailabiltySet)]"
-    },
-    "Names": {
-      "WebPublicIP": "WebPublicIP",
-      "AdminPublicIP": "AdminPublicIP",
-      "WebLoadBalancer": "WebLoadBalancer",
-      "WebLBFE": "WebLBFE",
-      "WebLBBE": "WebLBBE",
-      "AppLoadBalancer": "AppLoadBalancer",
-      "AppLBFE": "AppLBFE",
-      "AppLBBE": "AppLBBE",
-      "WebAvailabiltySet": "WebAvailabiltySet",
-      "AppAvailabiltySet": "AppAvailabiltySet",
-      "WebNic": "WebNic",
-      "AppNic": "AppNic",
-      "ConfigDatabase": "SP_Config",
-      "AdminContentDatadase": "SP_AdminContent",
-      "ContentDatabase": "spfarm_Content"
-    },
-    "generalSettings": {
-      "vmSPName": "[concat('Microsoft.Compute/virtualMachines/',parameters('SpAppVMName'),'0')]",
-      "vmFEName": "[concat('Microsoft.Compute/virtualMachines/',parameters('SpWebVMName'),'0')]",
-      "adfsSvcUserName": "adfssvc",
-      "adfsSvcPassword": "[parameters('serviceAccountsPassword')]",
-      "spSuperUserName": "spSuperUser",
-      "spSuperReaderName": "spSuperReader",
-      "sqlSvcUserName": "sqlsvc",
-      "sqlSvcPassword": "[parameters('serviceAccountsPassword')]",
-      "spSetupUserName": "spsetup",
-      "spSetupPassword": "[parameters('serviceAccountsPassword')]",
-      "spFarmUserName": "spfarm",
-      "spFarmPassword": "[parameters('serviceAccountsPassword')]",
-      "spSvcUserName": "spsvc",
-      "spSvcPassword": "[parameters('serviceAccountsPassword')]",
-      "spAppPoolUserName": "spapppool",
-      "spAppPoolPassword": "[parameters('serviceAccountsPassword')]",
-      "spPassphrase": "[parameters('serviceAccountsPassword')]"
-    },
-    "dscConfigureADDomain": {
-      "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('dsc/', parameters('_artifactsLocationSasToken')))]",
-      "script": "adDomain.ps1",
-      "function": "configAD",
-      "forceUpdateTag": "1.0"
-    }
-  },
-  "resources": [
-    {
-      "name": "[parameters('StorageAccount')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "location": "[parameters('location')]",
-      "apiVersion": "2019-04-01",
-      "tags": {
-        "displayName": "advmsdiag"
-      },
-      "sku": {
-        "name": "Standard_LRS"
-      },
-      "kind": "Storage",
-      "properties": {}
-    },
-    {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "apiVersion": "2018-12-01",
-      "name": "[parameters('WebPublicIPName')]",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "WebPublicIP"
-      },
-
-      "sku": {
-                "name": "Basic",
-                "tier": "Regional"
-      },
-      "properties": {
-        "publicIPAddressVersion": "IPv4",
-        "publicIPAllocationMethod": "Dynamic",
-        "dnsSettings": {
-          "domainNameLabel": "[parameters('dnsLabelPrefix')]",
-          "fqdn": "[parameters('domainName')]"
+        },
+        "AdminPublicIPName": {
+            "defaultValue": "AdminPublicIP",
+            "type": "String"
+        },
+        "SpAppVMName": {
+            "defaultValue": "AD-spapp",
+            "type": "String",
+            "metadata": {
+                "description": "The name of SharePoint Application VMs"
+            }
+        },
+        "SpWebVMName": {
+            "defaultValue": "AD-spweb",
+            "type": "String",
+            "metadata": {
+                "description": "The name of SharePoint Web VMs"
+            }
+        },
+        "existingDCNAME": {
+            "defaultValue": "AzureDeploy-AD",
+            "type": "String",
+            "metadata": {
+                "description": "Type existing AD VM Name"
+            }
+        },
+        "SpVMSize": {
+            "defaultValue": "Standard_DS3_v2",
+            "type": "String",
+            "metadata": {
+                "description": "The size of SharePoint VMs"
+            }
+        },
+        "AdminUsername": {
+            "defaultValue": "AdminAD",
+            "type": "String",
+            "metadata": {
+                "description": "The AD Admin username"
+            }
+        },
+        "AdminPassword": {
+            "type": "SecureString",
+            "metadata": {
+                "description": "The AD Admin password"
+            }
+        },
+        "serviceAccountsPassword": {
+            "minLength": 8,
+            "type": "SecureString",
+            "metadata": {
+                "description": "Password for all service account and SharePoint passphrase. It must meet password complexity requirements as documented for property 'adminPassword' in https://docs.microsoft.com/en-us/rest/api/compute/virtualmachines/virtualmachines-create-or-update"
+            }
+        },
+        "domainName": {
+            "defaultValue": "AzureDeploy.local",
+            "type": "String",
+            "metadata": {
+                "description": "The FQDN of the AD Domain created "
+            }
+        },
+        "dnsLabelPrefix": {
+            "defaultValue": "azuredeploy",
+            "type": "String",
+            "metadata": {
+                "description": "Unique DNS Name for the Public IP used to access the Virtual Machine."
+            }
+        },
+        "adNICIPAddress": {
+            "defaultValue": "10.0.0.4",
+            "type": "String",
+            "metadata": {
+                "description": "The IP address of the AD VM"
+            }
+        },
+        "_artifactsLocation": {
+            "defaultValue": "https://github.com/EnzoDero/AzureDeployDomain/",
+            "type": "String",
+            "metadata": {
+                "description": "The base URI where artifacts required by this template are located. When the template is deployed using the accompanying scripts, a private location in the subscription will be used and this value will be automatically generated."
+            }
+        },
+        "_artifactsLocationSasToken": {
+            "defaultValue": "",
+            "type": "SecureString",
+            "metadata": {
+                "description": "The sasToken required to access _artifactsLocation. When the template is deployed using the accompanying scripts, a sasToken will be automatically generated."
+            }
         }
-      }
     },
-    {
-      "type": "Microsoft.Network/publicIPAddresses",
-      "apiVersion": "2018-12-01",
-      "name": "[parameters('AdminPublicIPName')]",
-      "location": "[resourceGroup().location]",
-      "tags": {
-        "displayName": "AdminPublicIP"
-      },
-      "sku": {
+    "variables": {
+        "Ids": {
+            "AdminPublicIP": "[resourceId('Microsoft.Network/publicIPAddresses',variables('Names').AdminPublicIP)]",
+            "WebPublicIP": "[resourceId('Microsoft.Network/publicIPAddresses',variables('Names').WebPublicIP)]",
+            "VnetId": "[resourceId(parameters('ResourceGroup'), 'Microsoft.Network/virtualNetworks/subnets', parameters('VMsVnetName'), parameters('SubnetName'))]",
+            "WebLBFEId": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('Names').WebLoadBalancer),'/backendAddressPools/',variables('Names').WebLBBE)]",
+            "AppLBFEId": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('Names').AppLoadBalancer),'/backendAddressPools/',variables('Names').AppLBBE)]",
+            "SpWebAvailabilitySet": "[resourceId('Microsoft.Compute/availabilitySets',variables('Names').WebAvailabiltySet)]",
+            "SpAppAvailabilitySet": "[resourceId('Microsoft.Compute/availabilitySets',variables('Names').AppAvailabiltySet)]"
+        },
+        "Names": {
+            "WebPublicIP": "WebPublicIP",
+            "AdminPublicIP": "AdminPublicIP",
+            "WebLoadBalancer": "WebLoadBalancer",
+            "WebLBFE": "WebLBFE",
+            "WebLBBE": "WebLBBE",
+            "AppLoadBalancer": "AppLoadBalancer",
+            "AppLBFE": "AppLBFE",
+            "AppLBBE": "AppLBBE",
+            "WebAvailabiltySet": "WebAvailabiltySet",
+            "AppAvailabiltySet": "AppAvailabiltySet",
+            "WebNic": "WebNic",
+            "AppNic": "AppNic",
+            "ConfigDatabase": "SP_Config",
+            "AdminContentDatadase": "SP_AdminContent",
+            "ContentDatabase": "spfarm_Content"
+        },
+        "generalSettings": {
+            "vmSPName": "[concat('Microsoft.Compute/virtualMachines/',parameters('SpAppVMName'),'0')]",
+            "vmFEName": "[concat('Microsoft.Compute/virtualMachines/',parameters('SpWebVMName'),'0')]",
+            "adfsSvcUserName": "adfssvc",
+            "adfsSvcPassword": "[parameters('serviceAccountsPassword')]",
+            "spSuperUserName": "spSuperUser",
+            "spSuperReaderName": "spSuperReader",
+            "sqlSvcUserName": "sqlsvc",
+            "sqlSvcPassword": "[parameters('serviceAccountsPassword')]",
+            "spSetupUserName": "spsetup",
+            "spSetupPassword": "[parameters('serviceAccountsPassword')]",
+            "spFarmUserName": "spfarm",
+            "spFarmPassword": "[parameters('serviceAccountsPassword')]",
+            "spSvcUserName": "spsvc",
+            "spSvcPassword": "[parameters('serviceAccountsPassword')]",
+            "spAppPoolUserName": "spapppool",
+            "spAppPoolPassword": "[parameters('serviceAccountsPassword')]",
+            "spPassphrase": "[parameters('serviceAccountsPassword')]"
+        },
+        "dscConfigureADDomain": {
+            "scriptFileUri": "[uri(parameters('_artifactsLocation'), concat('tree/master/dsc/ConfigADDomain.zip', parameters('_artifactsLocationSasToken')))]",
+            "script": "adDomain.ps1",
+            "function": "configAD",
+            "forceUpdateTag": "1.0"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-04-01",
+            "name": "[parameters('StorageAccount')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "azuredeploydiag538"
+            },
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage",
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2018-12-01",
+            "name": "[parameters('WebPublicIPName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "WebPublicIP"
+            },
+            "sku": {
                 "name": "Basic",
                 "tier": "Regional"
-      },
-      "properties": {
-        "publicIPAddressVersion": "IPv4",
-        "publicIPAllocationMethod": "Dynamic"
-      }
-    },
-    {
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('dnsLabelPrefix')]",
+                    "fqdn": "[parameters('domainName')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2018-12-01",
+            "name": "[parameters('AdminPublicIPName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "AdminPublicIP"
+            },
+            "sku": {
+                "name": "Basic",
+                "tier": "Regional"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Dynamic"
+            }
+        },
+        {
             "type": "Microsoft.Network/loadBalancers",
             "apiVersion": "2019-08-01",
             "name": "[variables('Names').AppLoadBalancer]",
-            "location": "westeurope",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[variables('Ids').AdminPublicIP]"
+                "[parameters('AdminPublicIPName')]"
             ],
             "tags": {
                 "displayName": "AppLoadBalancer"
@@ -306,9 +305,9 @@
             "type": "Microsoft.Network/loadBalancers",
             "apiVersion": "2019-08-01",
             "name": "[variables('Names').WebLoadBalancer]",
-            "location": "westeurope",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[variables('Ids').WebPublicIP]"
+                "[parameters('WebPublicIPName')]"
             ],
             "tags": {
                 "displayName": "WebLoadBalancer"
@@ -476,423 +475,431 @@
                 "enableTcpReset": false
             }
         },
-      {
-      "name": "[variables('Names').WebAvailabiltySet]",
-      "type": "Microsoft.Compute/availabilitySets",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2019-03-01",
-      "tags": {
-        "displayName": "WebAvailabiltySet"
-      },
-      "sku": {
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+            "apiVersion": "2019-03-01",
+            "name": "[variables('Names').WebAvailabiltySet]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "WebAvailabiltySet"
+            },
+            "sku": {
                 "name": "Aligned"
             },
             "properties": {
                 "platformUpdateDomainCount": 5,
-                "platformFaultDomainCount": 3,
+                "platformFaultDomainCount": 2,
                 "virtualMachines": [
                     {
                         "id": "[resourceId('Microsoft.Compute/virtualMachines', concat(parameters('SpWebVMName')))]"
                     }
                 ]
             }
-      },
-    {
-      "name": "[variables('Names').AppAvailabiltySet]",
-      "type": "Microsoft.Compute/availabilitySets",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2019-03-01",
-      "tags": {
-        "displayName": "AppAvailabiltySet"
-      },
-      "sku": {
+        },
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+            "apiVersion": "2019-03-01",
+            "name": "[variables('Names').AppAvailabiltySet]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "AppAvailabiltySet"
+            },
+            "sku": {
                 "name": "Aligned"
             },
             "properties": {
                 "platformUpdateDomainCount": 5,
-                "platformFaultDomainCount": 3,
+                "platformFaultDomainCount": 2,
                 "virtualMachines": [
                     {
                         "id": "[resourceId('Microsoft.Compute/virtualMachines', concat(parameters('SpAppVMName')))]"
                     }
                 ]
             }
-    },
-    {
-    "type": "Microsoft.Compute/disks",
-    "apiVersion": "2018-06-01",
-    "tags": {
-        "displayName": "SpAppVMName-datadisk"
-      },
-    "name": "[concat(parameters('SpAppVMName'),'-datadisk', copyIndex())]",
-    "location": "[resourceGroup().location]",
-    "sku": {
-        "name": "Standard_LRS",
-        "tier": "Standard"
-    },
-    "properties": {
-        "creationData": {
-            "createOption": "Empty"
         },
-        "diskSizeGB": 128
-    },
-    "copy": {
-        "name": "datadisk",
-        "count": 2
-      }
-    },
-    {
-    "type": "Microsoft.Compute/disks",
-    "apiVersion": "2018-06-01",
-    "tags": {
-        "displayName": "SpWebVMName-datadisk"
-      },
-    "name": "[concat(parameters('SpWebVMName'),'-datadisk', copyIndex())]",
-    "location": "[resourceGroup().location]",
-    "sku": {
-        "name": "Standard_LRS",
-        "tier": "Standard"
-    },
-    "properties": {
-        "creationData": {
-            "createOption": "Empty"
-        },
-        "diskSizeGB": 128
-    },
-    "copy": {
-        "name": "datadisk",
-        "count": 2
-      }
-    },
-    {
-      "name": "[concat(variables('Names').WebNic,'0')]",
-      "type": "Microsoft.Network/networkInterfaces",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2016-03-30",
-      "dependsOn": [
-        "[variables('Names').WebLoadBalancer]"
-      ],
-      "tags": {
-        "displayName": "WebNic0"
-      },
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
+        {
+            "type": "Microsoft.Compute/disks",
+            "apiVersion": "2018-06-01",
+            "name": "[concat(parameters('SpAppVMName'),'-datadisk', copyIndex())]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "SpAppVMName-datadisk"
+            },
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
             "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[variables('Ids').VnetId]"
-              },
-              "primary": true,
-              "privateIPAddressVersion": "IPv4",
-              "loadBalancerBackendAddressPools": [
-                {
-                  "id": "[variables('Ids').WebLBFEId]"
-                }
-              ]
+                "creationData": {
+                    "createOption": "Empty"
+                },
+                "diskSizeGB": 128
+            },
+            "copy": {
+                "name": "datadisk",
+                "count": 2
             }
-          }
-        ]
-      }
-    },
-    {
-      "name": "[concat(variables('Names').WebNic,'1')]",
-      "type": "Microsoft.Network/networkInterfaces",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2016-03-30",
-      "dependsOn": [
-        "[variables('Names').WebLoadBalancer]"
-      ],
-      "tags": {
-        "displayName": "WebNic1"
-      },
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "apiVersion": "2018-06-01",
+            "name": "[concat(parameters('SpWebVMName'),'-datadisk', copyIndex())]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "SpWebVMName-datadisk"
+            },
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
             "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[variables('Ids').VnetId]"
-              },
-              "primary": true,
-              "privateIPAddressVersion": "IPv4",
-              "loadBalancerBackendAddressPools": [
-                {
-                  "id": "[variables('Ids').WebLBFEId]"
-                }
-              ]
+                "creationData": {
+                    "createOption": "Empty"
+                },
+                "diskSizeGB": 128
+            },
+            "copy": {
+                "name": "datadisk",
+                "count": 2
             }
-          }
-        ]
-      }
-    },
-    {
-      "name": "[concat(variables('Names').AppNic,'0')]",
-      "type": "Microsoft.Network/networkInterfaces",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2016-03-30",
-      "dependsOn": [
-        "[variables('Names').AppLoadBalancer]"
-      ],
-      "tags": {
-        "displayName": "AppNic0"
-      },
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2016-03-30",
+            "name": "[concat(variables('Names').WebNic,'0')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('Names').WebLoadBalancer]"
+            ],
+            "tags": {
+                "displayName": "WebNic0"
+            },
             "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[variables('Ids').VnetId]"
-              },
-              "primary": true,
-              "privateIPAddressVersion": "IPv4",
-              "loadBalancerBackendAddressPools": [
-                {
-                  "id": "[variables('Ids').AppLBFEId]"
-                }
-              ]
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('Ids').VnetId]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[variables('Ids').WebLBFEId]"
+                                }
+                            ]
+                        }
+                    }
+                ]
             }
-          }
-        ]
-      }
-    },
-    {
-      "name": "[concat(variables('Names').AppNic,'1')]",
-      "type": "Microsoft.Network/networkInterfaces",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2016-03-30",
-      "dependsOn": [
-        "[variables('Names').AppLoadBalancer]"
-      ],
-      "tags": {
-        "displayName": "AppNic1"
-      },
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2016-03-30",
+            "name": "[concat(variables('Names').WebNic,'1')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('Names').WebLoadBalancer]"
+            ],
+            "tags": {
+                "displayName": "WebNic1"
+            },
             "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "subnet": {
-                "id": "[variables('Ids').VnetId]"
-              },
-              "primary": true,
-              "privateIPAddressVersion": "IPv4",
-              "loadBalancerBackendAddressPools": [
-                {
-                  "id": "[variables('Ids').AppLBFEId]"
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('Ids').VnetId]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[variables('Ids').WebLBFEId]"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2016-03-30",
+            "name": "[concat(variables('Names').AppNic,'0')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('Names').AppLoadBalancer]"
+            ],
+            "tags": {
+                "displayName": "AppNic0"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('Ids').VnetId]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[variables('Ids').AppLBFEId]"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2016-03-30",
+            "name": "[concat(variables('Names').AppNic,'1')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[variables('Names').AppLoadBalancer]"
+            ],
+            "tags": {
+                "displayName": "AppNic1"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('Ids').VnetId]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4",
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[variables('Ids').AppLBFEId]"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-10-01",
+            "name": "[concat(parameters('SpAppVMName'), copyindex())]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/', parameters('StorageAccount'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces/', concat(variables('Names').AppNic, copyindex()))]",
+                "[resourceId('Microsoft.Compute/disks/', concat(parameters('SpWebVMName'),'-datadisk', copyIndex()))]"
+            ],
+            "tags": {
+                "displayName": "SpAppVMs"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('SpVMSize')]"
+                },
+                "availabilitySet": {
+                    "id": "[variables('ids').SpAppAvailabilitySet]"
+                },
+                "osProfile": {
+                    "computerName": "[concat(parameters('SpAppVMName'), copyindex())]",
+                    "adminUsername": "[parameters('AdminUsername')]",
+                    "adminPassword": "[parameters('AdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftSharePoint",
+                        "offer": "MicrosoftSharePointServer",
+                        "sku": "2013",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage"
+                    },
+                    "dataDisks": [
+                        {
+                            "createOption": "Attach",
+                            "diskSizeGB": 128,
+                            "lun": 0,
+                            "managedDisk": {
+                                "storageAccountType": "Standard_LRS",
+                                "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('SpAppVMName'),'-datadisk',copyIndex()))]"
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',concat(variables('Names').AppNic, copyindex()))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "https://azuredeploydiag538.blob.core.windows.net"
+                    }
+                },
+                "licenseType": "Windows_Server"
+            },
+            "copy": {
+                "name": "spAppVMLoop",
+                "count": 2
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-10-01",
+            "name": "[concat(parameters('SpWebVMName'), copyindex())]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/', parameters('StorageAccount'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces/', concat(variables('Names').WebNic, copyindex()))]",
+                "[resourceId('Microsoft.Compute/disks/', concat(parameters('SpWebVMName'),'-datadisk', copyIndex()))]"
+            ],
+            "tags": {
+                "displayName": "SpWebVMs"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('SpVMSize')]"
+                },
+                "availabilitySet": {
+                    "id": "[variables('ids').SpWebAvailabilitySet]"
+                },
+                "osProfile": {
+                    "computerName": "[concat(parameters('SpWebVMName'), copyindex())]",
+                    "adminUsername": "[parameters('AdminUsername')]",
+                    "adminPassword": "[parameters('AdminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftSharePoint",
+                        "offer": "MicrosoftSharePointServer",
+                        "sku": "2013",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "createOption": "FromImage"
+                    },
+                    "dataDisks": [
+                        {
+                            "createOption": "Attach",
+                            "lun": 0,
+                            "managedDisk": {
+                                "storageAccountType": "Standard_LRS",
+                                "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('SpWebVMName'),'-datadisk',copyIndex()))]"
+                            }
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',concat(variables('Names').WebNic, copyindex()))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "https://azuredeploydiag538.blob.core.windows.net"
+                    }
+                },
+                "licenseType": "Windows_Server"
+            },
+            "copy": {
+                "name": "spWebVMLoop",
+                "count": 2
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2019-03-01",
+            "name": "[concat(parameters('SpAppVMName'),'0','/ConfigureADDomain')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/',parameters('SpAppVMName'),'0')]",
+                "[concat('Microsoft.Compute/virtualMachines/',parameters('SpWebVMName'),'0')]",
+                "[concat('Microsoft.Compute/virtualMachines/',parameters('SpAppVMName'),'1')]",
+                "[concat('Microsoft.Compute/virtualMachines/',parameters('SpWebVMName'),'1')]"
+            ],
+            "tags": {
+                "displayName": "ScriptADDomainJoin"
+            },
+            "properties": {
+                "publisher": "Microsoft.Powershell",
+                "type": "DSC",
+                "typeHandlerVersion": "2.9",
+                "autoUpgradeMinorVersion": true,
+                "forceUpdateTag": "[variables('dscConfigureADDomain').forceUpdateTag]",
+                "settings": {
+                    "wmfVersion": "latest",
+                    "ModulesUrl": "https://github.com/EnzoDero/AzureDeployDomain/blob/master/dsc/ConfigADDomain.zip",
+                    "ConfigurationFunction": "adDomain.ps1\\configAD",
+                    "configuration": {
+                        "url": "[variables('dscConfigureADDomain').scriptFileUri]",
+                        "script": "[variables('dscConfigureADDomain').script]",
+                        "function": "[variables('dscConfigureADDomain').function]"
+                    },
+                    "configurationArguments": {
+                        "DNSServer": "[parameters('adNICIPAddress')]",
+                        "DomainFQDN": "[parameters('domainName')]",
+                        "DCName": "[parameters('existingDCNAME')]"
+                    },
+                    "privacy": {
+                        "dataCollection": "enable"
+                    }
+                },
+                "protectedSettings": {
+                    "configurationArguments": {
+                        "DomainAdminCreds": {
+                            "UserName": "[parameters('adminUsername')]",
+                            "Password": "[parameters('adminPassword')]"
+                        },
+                        "SPSetupCreds": {
+                            "UserName": "[variables('generalSettings').spSetupUserName]",
+                            "Password": "[variables('generalSettings').spSetupPassword]"
+                        },
+                        "SPFarmCreds": {
+                            "UserName": "[variables('generalSettings').spFarmUserName]",
+                            "Password": "[variables('generalSettings').spFarmPassword]"
+                        },
+                        "SPSvcCreds": {
+                            "UserName": "[variables('generalSettings').spSvcUserName]",
+                            "Password": "[variables('generalSettings').spSvcPassword]"
+                        },
+                        "SPAppPoolCreds": {
+                            "UserName": "[variables('generalSettings').spAppPoolUserName]",
+                            "Password": "[variables('generalSettings').spAppPoolPassword]"
+                        },
+                        "SPPassphraseCreds": {
+                            "UserName": "Passphrase",
+                            "Password": "[variables('generalSettings').spPassphrase]"
+                        },
+                        "SPSuperUserCreds": {
+                            "UserName": "[variables('generalSettings').spSuperUserName]",
+                            "Password": "[parameters('serviceAccountsPassword')]"
+                        },
+                        "SPSuperReaderCreds": {
+                            "UserName": "[variables('generalSettings').spSuperReaderName]",
+                            "Password": "[parameters('serviceAccountsPassword')]"
+                        }
+                    }
                 }
-              ]
             }
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2018-10-01",
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('SpAppVMName'), copyindex())]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts/', parameters('StorageAccount'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces/', concat(variables('Names').AppNic, copyindex()))]",
-        "[resourceId('Microsoft.Compute/disks/', concat(parameters('SpWebVMName'),'-datadisk', copyIndex()))]"
-    ],
-      "tags": {
-        "displayName": "SpAppVMs"
-      },
-      "copy": {
-        "name": "spAppVMLoop",
-        "count": 2
-      },
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[parameters('SpVMSize')]"
-        },
-        "availabilitySet": {
-          "id": "[variables('ids').SpAppAvailabilitySet]"
-        },
-        "osProfile": {
-          "computerName": "[concat(parameters('SpAppVMName'), copyindex())]",
-          "adminUsername": "[parameters('AdminUsername')]",
-          "adminPassword": "[parameters('AdminPassword')]"
-        },
-        "storageProfile": {
-          "imageReference": {
-            "publisher": "MicrosoftSharePoint",
-            "offer": "MicrosoftSharePointServer",
-            "sku": "2013",
-            "version": "latest"
-          },
-          "osDisk": {
-            "createOption": "FromImage"
-          },
-          "dataDisks": [
-            {
-              "createOption": "Attach",
-              "diskSizeGB": 128,
-              "lun": 0,
-              "managedDisk": {
-                        "storageAccountType": "Standard_LRS",
-                        "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('SpAppVMName'),'-datadisk',copyIndex()))]"
-              }
-            }
-          ]
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',concat(variables('Names').AppNic, copyindex()))]"
-            }
-          ]
-        },
-        "diagnosticsProfile": {
-          "bootDiagnostics": {
-            "enabled": true,
-            "storageUri": "https://advmsdiag.blob.core.windows.net"
-          }
-        },
-        "licenseType": "Windows_Server"
-      }
-    },
-    {
-      "apiVersion": "2018-10-01",
-      "type": "Microsoft.Compute/virtualMachines",
-      "name": "[concat(parameters('SpWebVMName'), copyindex())]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts/', parameters('StorageAccount'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces/', concat(variables('Names').WebNic, copyindex()))]",
-        "[resourceId('Microsoft.Compute/disks/', concat(parameters('SpWebVMName'),'-datadisk', copyIndex()))]"
-    ],
-      "tags": {
-        "displayName": "SpWebVMs"
-      },
-      "copy": {
-        "name": "spWebVMLoop",
-        "count": 2
-      },
-      "properties": {
-        "hardwareProfile": {
-          "vmSize": "[parameters('SpVMSize')]"
-        },
-        "availabilitySet": {
-          "id": "[variables('ids').SpWebAvailabilitySet]"
-        },
-        "osProfile": {
-          "computerName": "[concat(parameters('SpWebVMName'), copyindex())]",
-          "adminUsername": "[parameters('AdminUsername')]",
-          "adminPassword": "[parameters('AdminPassword')]"
-        },
-        "storageProfile": {
-          "imageReference": {
-            "publisher": "MicrosoftSharePoint",
-            "offer": "MicrosoftSharePointServer",
-            "sku": "2013",
-            "version": "latest"
-          },
-          "osDisk": {
-            "createOption": "FromImage"
-          },
-          "dataDisks": [
-            {
-              "createOption": "Attach",
-              "lun": 0,
-              "managedDisk": {
-                        "storageAccountType": "Standard_LRS",
-                        "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('SpWebVMName'),'-datadisk',copyIndex()))]"
-              }
-            }
-          ]
-        },
-        "networkProfile": {
-          "networkInterfaces": [
-            {
-              "id": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces',concat(variables('Names').WebNic, copyindex()))]"
-            }
-          ]
-        },
-        "diagnosticsProfile": {
-          "bootDiagnostics": {
-            "enabled": true,
-            "storageUri": "https://advmsdiag.blob.core.windows.net"
-          }
-        },
-        "licenseType": "Windows_Server"
-      }
-    },
-    {
-      "name": "[concat(variables('generalSettings').vmFEName,'/ConfigureADDomain')]",
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "location": "[parameters('location')]",
-      "apiVersion": "2019-03-01",
-      "tags": {
-        "displayName": "ScriptADDomainJoin"
-      },
-      "properties": {
-        "publisher": "Microsoft.Powershell",
-        "type": "DSC",
-        "typeHandlerVersion": "2.9",
-        "autoUpgradeMinorVersion": true,
-        "forceUpdateTag": "[variables('dscConfigureADDomain').forceUpdateTag]",
-        "settings": {
-          "wmfVersion": "latest",
-          "configuration": {
-            "url": "[variables('dscConfigureADDomain').scriptFileUri]",
-            "script": "[variables('dscConfigureADDomain').script]",
-            "function": "[variables('dscConfigureADDomain').function]"
-          },
-          "configurationArguments": {
-            "DNSServer": "[parameters('adNICIPAddress')]",
-            "DomainFQDN": "[parameters('domainName')]",
-            "DCName": "[parameters('existingDCNAME')]"
-          },
-          "privacy": {
-            "dataCollection": "enable"
-          }
-        },
-        "protectedSettings": {
-          "configurationArguments": {
-            "DomainAdminCreds": {
-              "UserName": "[parameters('adminUsername')]",
-              "Password": "[parameters('adminPassword')]"
-            },
-            "SPSetupCreds": {
-              "UserName": "[variables('generalSettings').spSetupUserName]",
-              "Password": "[variables('generalSettings').spSetupPassword]"
-            },
-            "SPFarmCreds": {
-              "UserName": "[variables('generalSettings').spFarmUserName]",
-              "Password": "[variables('generalSettings').spFarmPassword]"
-            },
-            "SPSvcCreds": {
-              "UserName": "[variables('generalSettings').spSvcUserName]",
-              "Password": "[variables('generalSettings').spSvcPassword]"
-            },
-            "SPAppPoolCreds": {
-              "UserName": "[variables('generalSettings').spAppPoolUserName]",
-              "Password": "[variables('generalSettings').spAppPoolPassword]"
-            },
-            "SPPassphraseCreds": {
-              "UserName": "Passphrase",
-              "Password": "[variables('generalSettings').spPassphrase]"
-            },
-            "SPSuperUserCreds": {
-              "UserName": "[variables('generalSettings').spSuperUserName]",   
-              "Password": "[parameters('serviceAccountsPassword')]"
-            },
-            "SPSuperReaderCreds": {
-              "UserName": "[variables('generalSettings').spSuperReaderName]",
-              "Password": "[parameters('serviceAccountsPassword')]"
-            }
-          }
         }
-      }
-    }
-  ],
-  "outputs": {}
+    ],
+    "outputs": {}
 }
