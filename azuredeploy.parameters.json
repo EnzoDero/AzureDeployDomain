@@ -3,7 +3,7 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "location": {
-      "value": "westeurope"
+      "value": "francecentral"
     },
     "ResourceGroup": {
       "value": "AzureDeploy"
@@ -18,16 +18,16 @@
       "value": "AzureDeploy-vnet"
     },
     "WebPublicIPName": {
-      "value": "AzureDeploy-WebPublicIP"
+      "value": "WebPublicIP"
     },
     "AdminPublicIPName": {
-      "value": "AzureDeploy-AdminPublicIP"
+      "value": "AdminPublicIP"
     },
     "SpAppVMName": {
-      "value": "AzureDeploy-spapp"
+      "value": "AD-spapp"
     },
     "SpWebVMName": {
-      "value": "AzureDeploy-spweb"
+      "value": "AD-spweb"
     },
     "SpVMSize": {
       "value": "Standard_DS3_v2"
